@@ -13,6 +13,8 @@ export class ProductListComponent implements OnInit {
   products: Product[] = [];
   currentCategoryId: number = 1;
   currentCategoryName: string = "";
+  searchMode: boolean = false;
+  allHaveId: boolean = false;
   constructor(
     private productService: ProductService,
     private route: ActivatedRoute) { }
@@ -23,7 +25,34 @@ export class ProductListComponent implements OnInit {
     });
   }
 
-  private listProducts() {
+  listProducts() {
+    this.searchMode = this.route.snapshot.paramMap.has('keyword');
+    if (this.searchMode) {
+      this.handleSearchProducts();
+      this.checkIfAllHaveId();
+    } else {
+      this.allHaveId = true;
+      this.handleListProducts();
+    }
+
+  }
+  checkIfAllHaveId() {
+    console.log(this.products);
+    this.allHaveId = this.products.length > 0 && this.products[0].name !== undefined;
+    console.log(this.allHaveId);
+
+  }
+  handleSearchProducts() {
+    const theKeyword: string = this.route.snapshot.paramMap.get('keyword')!;
+
+    this.productService.searchProducts(theKeyword).subscribe((data: Product[]) => {
+      this.products = data;
+    });
+    this.searchMode = this.products.length === 0;
+
+
+  }
+  handleListProducts() {
     // check if id parameter is available
     const hasCategoryId: boolean = this.route.snapshot.paramMap.has('id');
     if (hasCategoryId) {
@@ -44,5 +73,4 @@ export class ProductListComponent implements OnInit {
       }
     )
   }
-
 }
